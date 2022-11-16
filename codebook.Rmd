@@ -1,0 +1,70 @@
+---
+title: "Codebook"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    code_folding: 'hide'
+    self_contained: true
+  pdf_document:
+    toc: yes
+    toc_depth: 4
+    latex_engine: xelatex
+---
+
+Here, we're just setting a few options.
+
+```{r setup}
+knitr::opts_chunk$set(
+  warning = TRUE, # show warnings during codebook generation
+  message = TRUE, # show messages during codebook generation
+  error = TRUE, # do not interrupt codebook generation in case of errors,
+                # usually better for debugging
+  echo = TRUE  # show R code
+)
+ggplot2::theme_set(ggplot2::theme_bw())
+
+```
+
+Now, we're preparing our data for the codebook.
+
+```{r prepare_codebook}
+library(codebook)
+codebook_data <- rio::import("fake_data.RData") 
+
+# omit the following lines, if your missing values are already properly labelled
+codebook_data <- detect_missing(codebook_data,
+    only_labelled = TRUE, # only labelled values are autodetected as
+                                   # missing
+    negative_values_are_missing = FALSE, # negative values are missing values
+    ninety_nine_problems = TRUE,   # 99/999 are missing values, if they
+                                   # are more than 5 MAD from the median
+    )
+
+codebook_data <- detect_scales(codebook_data)
+
+# add metadata
+metadata(codebook_data)$name <- "Fake Data"
+metadata(codebook_data)$description <- "This is fake data, used to learn how to make a codebook."
+metadata(codebook_data)$creator <- list(
+  "@type" = "Person",
+   	givenName = "Kirsten", 
+ 		familyName = "van Kessel",
+    affiliation = list("@type" = "Organization",
+    name = "Utrecht University"))
+		metadata(codebook_data)$datePublished <- "2022-11-16"
+		
+# add variable labels
+var_label(codebook_data$transport) <- "mode of transportation"
+var_label(codebook_data$age) <- "age of the participant"
+var_label(codebook_data$id_individu) <- "participant ID"
+var_label(codebook_data$sexe) <- "sex of the participant"
+```
+
+
+Create codebook
+
+```{r codebook}
+compact_codebook(codebook_data)
+```
